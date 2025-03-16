@@ -105,7 +105,7 @@ def convertir_docx_a_pdf():
                 print(f"❌ Error al iniciar Word: {str(e)}")
 
         elif sistema_operativo == 'Linux':
-            # Usar LibreOffice en Linux
+        # Usar LibreOffice en Linux
             for archivo in os.listdir(carpeta_origen):
                 if archivo.lower().endswith('.docx'):
                     archivo_docx = os.path.join(carpeta_origen, archivo)
@@ -121,7 +121,7 @@ def convertir_docx_a_pdf():
                         print(f"📄 Procesando: {archivo_docx} -> {archivo_pdf}")
 
                         # Usar LibreOffice en modo headless para convertir DOCX a PDF
-                        comando = ['libreoffice', '--headless', '--convert-to', 'pdf', archivo_docx]
+                        comando = ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', carpeta_destino, archivo_docx]
                         subprocess.run(comando, check=True)
 
                         print(f"✅ Convertido con éxito: {archivo_docx} -> {archivo_pdf}")
@@ -130,8 +130,9 @@ def convertir_docx_a_pdf():
                         print(f"❌ Error al convertir {archivo_docx}:\n{str(e)}")
                         messagebox.showerror("Error", f"No se pudo convertir {archivo_docx} a PDF.\n\n{str(e)}")
 
-        else:
-            messagebox.showerror("Error", f"Sistema operativo no soportado: {sistema_operativo}")
+
+                else:
+                    messagebox.showerror("Error", f"Sistema operativo no soportado: {sistema_operativo}")
 
     except Exception as e:
         messagebox.showerror("Error", f"Hubo un problema al convertir los archivos DOCX.\n\n{str(e)}")
