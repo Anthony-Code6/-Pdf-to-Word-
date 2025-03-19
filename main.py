@@ -1,21 +1,46 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox
 from pdf2docx import Converter
 import os
 import subprocess
-import platform  # Para detectar el sistema operativo
+import platform
 
-# Comprobar el sistema operativo
 sistema_operativo = platform.system()
 
-# Importar comtypes solo si el sistema operativo es Windows
 if sistema_operativo == 'Windows':
-    import comtypes.client  # Para convertir DOCX a PDF con Microsoft Word (solo en Windows)
+    import comtypes.client
 
-# Obtener la ruta de la carpeta Descargas del usuario
 ruta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
 
-# Función para seleccionar carpeta de origen
+def log_mensaje(mensaje):
+    text_area.config(state="normal")
+    text_area.insert(tk.END, mensaje + "\n")
+    text_area.yview_moveto(1.0)  # Mover siempre al final
+    text_area.config(state="disabled")
+    text_area.update()
+
+# Notebook File
+
+def seleccionar_archivo():
+    file = filedialog.askopenfilename(
+        title="Seleccionar archivo",
+        filetypes=[
+            ("Documentos", "*.pdf *.docx *.doc *.docm *.odt"),
+            ("PDF files", "*.pdf"),
+            ("Word Documents", "*.docx *.doc *.docm"),
+            ("OpenDocument Text", "*.odt"),
+            ("Todos los archivos", "*.*")
+        ]
+    )
+    if entrada_file:
+        entrada_file.config(state="normal")
+        entrada_file.delete(0, tk.END)
+        entrada_file.insert(0, file)
+        entrada_file.config(state="disabled")
+
+
+# Noteboog Directory
+
 def seleccionar_carpeta_origen():
     carpeta_origen = filedialog.askdirectory()
     if carpeta_origen:
@@ -24,7 +49,6 @@ def seleccionar_carpeta_origen():
         entrada_origen.insert(0, carpeta_origen)
         entrada_origen.config(state="disabled")
 
-# Función para seleccionar carpeta de destino
 def seleccionar_carpeta_destino():
     carpeta_destino = filedialog.askdirectory()
     if carpeta_destino:
@@ -33,146 +57,133 @@ def seleccionar_carpeta_destino():
         entrada_destino.insert(0, carpeta_destino)
         entrada_destino.config(state="disabled")
 
-# Función para convertir PDF a DOCX
 def convertir_pdf_a_word():
     carpeta_origen = entrada_origen.get()
     carpeta_destino = entrada_destino.get()
     
     if not carpeta_origen or not carpeta_destino:
-        messagebox.showerror("Error", "Deben seleccionar las rutas de origen y destino")
+        messagebox.showerror("Error", "Debe seleccionar ambas rutas")
         return
-    
+
+    log_mensaje("Iniciando conversión PDF a Word...")
+
     for archivo in os.listdir(carpeta_origen):
         if archivo.lower().endswith('.pdf'):
             archivo_pdf = os.path.join(carpeta_origen, archivo)
-            archivo_destino = os.path.join(carpeta_destino, archivo.replace('.pdf', '.docx'))
+            archivo_docx = os.path.join(carpeta_destino, archivo.replace('.pdf', '.docx'))
             
-            # Convertir PDF a DOCX
-            cv = Converter(archivo_pdf)
-            cv.convert(archivo_destino, start=0, end=None)
-            cv.close()
-            print(f"✅ Convertido: {archivo_pdf} -> {archivo_destino}")
+            log_mensaje(f"Convirtiendo: {archivo}...")
+            try:
+                cv = Converter(archivo_pdf)
+                cv.convert(archivo_docx, start=0, end=None)
+                cv.close()
+                log_mensaje(f"✅ Convertido: {archivo} a DOCX.")
+            except Exception as e:
+                log_mensaje(f"❌ Error al convertir {archivo}: {e}")
 
-# Función para convertir DOCX a PDF (detecta el SO)
+    log_mensaje("Conversión PDF a Word finalizada.")
+
 def convertir_docx_a_pdf():
     carpeta_origen = entrada_origen.get()
     carpeta_destino = entrada_destino.get()
 
     if not carpeta_origen or not carpeta_destino:
-        messagebox.showerror("Error", "Deben seleccionar las rutas de origen y destino")
+        messagebox.showerror("Error", "Debe seleccionar ambas rutas")
         return
+
+    log_mensaje("Iniciando conversión Word a PDF...")
 
     try:
         if sistema_operativo == 'Windows':
-            # Usar COM (Microsoft Word) en Windows
-            try:
-                # Intentar abrir Microsoft Word
-                word = comtypes.client.CreateObject("Word.Application")
-                word.Visible = False  # No mostrar Word
+            word = comtypes.client.CreateObject("Word.Application")
+            word.Visible = False
 
-                for archivo in os.listdir(carpeta_origen):
-                    if archivo.lower().endswith('.docx'):
-                        archivo_docx = os.path.join(carpeta_origen, archivo)
-                        
-                        # Crear la ruta de destino con el mismo nombre pero en formato PDF
-                        archivo_pdf = os.path.join(carpeta_destino, archivo.replace('.docx', '.pdf'))
-                        
-                        try:
-                            # Reemplazar las barras invertidas para evitar problemas en rutas largas o con espacios
-                            archivo_docx = os.path.abspath(archivo_docx)
-                            archivo_pdf = os.path.abspath(archivo_pdf)
-
-                            print(f"📄 Procesando: {archivo_docx} -> {archivo_pdf}")
-
-                            # Abrir el documento en Word
-                            doc = word.Documents.Open(archivo_docx)
-                            
-                            # Guardar el documento como PDF
-                            doc.SaveAs(archivo_pdf, FileFormat=17)  # 17 es el formato PDF
-                            doc.Close()  # Cerrar el documento después de la conversión
-                            
-                            print(f"✅ Convertido con éxito: {archivo_docx} -> {archivo_pdf}")
-
-                        except Exception as e:
-                            print(f"❌ Error al convertir {archivo_docx}:\n{str(e)}")
-                            messagebox.showerror("Error", f"No se pudo convertir {archivo_docx} a PDF.\n\n{str(e)}")
-
-                # Cerrar Word completamente
-                word.Quit()
-            
-            except Exception as e:
-                messagebox.showerror("Error", "Microsoft Word no está instalado o hubo un problema al iniciar Word.")
-                print(f"❌ Error al iniciar Word: {str(e)}")
-
-        elif sistema_operativo == 'Linux':
-        # Usar LibreOffice en Linux
             for archivo in os.listdir(carpeta_origen):
                 if archivo.lower().endswith('.docx'):
-                    archivo_docx = os.path.join(carpeta_origen, archivo)
+                    archivo_docx = os.path.abspath(os.path.join(carpeta_origen, archivo))
+                    archivo_pdf = os.path.abspath(os.path.join(carpeta_destino, archivo.replace('.docx', '.pdf')))
                     
-                    # Crear la ruta de destino con el mismo nombre pero en formato PDF
-                    archivo_pdf = os.path.join(carpeta_destino, archivo.replace('.docx', '.pdf'))
+                    log_mensaje(f"Convirtiendo: {archivo}...")
+                    doc = word.Documents.Open(archivo_docx)
+                    doc.SaveAs(archivo_pdf, FileFormat=17)
+                    doc.Close()
+                    log_mensaje(f"✅ Convertido: {archivo} a PDF.")
+            
+            word.Quit()
+
+        elif sistema_operativo == 'Linux':
+            for archivo in os.listdir(carpeta_origen):
+                if archivo.lower().endswith('.docx'):
+                    archivo_docx = os.path.abspath(os.path.join(carpeta_origen, archivo))
+                    log_mensaje(f"Convirtiendo: {archivo}...")
+                    comando = ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', carpeta_destino, archivo_docx]
+                    subprocess.run(comando, check=True)
+                    log_mensaje(f"✅ Convertido: {archivo} a PDF.")
                     
-                    try:
-                        # Reemplazar las barras invertidas para evitar problemas en rutas largas o con espacios
-                        archivo_docx = os.path.abspath(archivo_docx)
-                        archivo_pdf = os.path.abspath(archivo_pdf)
-
-                        print(f"📄 Procesando: {archivo_docx} -> {archivo_pdf}")
-
-                        # Usar LibreOffice en modo headless para convertir DOCX a PDF
-                        comando = ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', carpeta_destino, archivo_docx]
-                        subprocess.run(comando, check=True)
-
-                        print(f"✅ Convertido con éxito: {archivo_docx} -> {archivo_pdf}")
-
-                    except Exception as e:
-                        print(f"❌ Error al convertir {archivo_docx}:\n{str(e)}")
-                        messagebox.showerror("Error", f"No se pudo convertir {archivo_docx} a PDF.\n\n{str(e)}")
-
-
-                else:
-                    messagebox.showerror("Error", f"Sistema operativo no soportado: {sistema_operativo}")
+        else:
+            messagebox.showerror("Error", f"SO no soportado: {sistema_operativo}")
 
     except Exception as e:
-        messagebox.showerror("Error", f"Hubo un problema al convertir los archivos DOCX.\n\n{str(e)}")
+        log_mensaje(f"❌ Error en la conversión: {e}")
 
-# Configuración de la interfaz gráfica con Tkinter
+    log_mensaje("Conversión Word a PDF finalizada.")
+
 ventana = tk.Tk()
-ventana.title("Convertir PDF a Word / Word a PDF")
+ventana.title("LegionSoft - Converter (PDF/Word & Word/PDF)")
+ventana.geometry("586x380")
+ventana.resizable(False,False)
 ventana.iconbitmap('icono.ico')
-ventana.resizable(False, False)
-ventana.geometry("500x150")
 
-# Crear un frame para organizar las entradas y botones
-frame_inputs = tk.Frame(ventana)
-frame_inputs.pack(pady=10)
+notebook = ttk.Notebook(ventana)
+notebook.pack(expand=True, fill='both')
 
-# Primera fila: Carpeta de origen
-tk.Label(frame_inputs, text="Carpeta de origen:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-entrada_origen = tk.Entry(frame_inputs, width=40, state="disabled")
-entrada_origen.grid(row=0, column=1, padx=5, pady=5)
-tk.Button(frame_inputs, text="+", command=seleccionar_carpeta_origen).grid(row=0, column=2, padx=5, pady=5)
+tab_directory = tk.Frame(notebook)
+notebook.add(tab_directory, text="Directory")
 
-# Segunda fila: Carpeta de destino
-tk.Label(frame_inputs, text="Carpeta de destino:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
-entrada_destino = tk.Entry(frame_inputs, width=40)
-entrada_destino.grid(row=1, column=1, padx=5, pady=5)
-entrada_destino.insert(0, ruta_descargas)  # Inicializa con la carpeta Descargas
-tk.Button(frame_inputs, text="+", command=seleccionar_carpeta_destino).grid(row=1, column=2, padx=5, pady=5)
+frame_directory = tk.Frame(tab_directory)
+frame_directory.pack(pady=10, padx=10, fill='x')
 
-# Frame contenedor para los botones de conversión
-frame_botones = tk.Frame(ventana)
+tk.Label(frame_directory, text="Source Folder:").grid(row=0, column=0, sticky='w')
+origen_frame = tk.Frame(frame_directory)
+origen_frame.grid(row=1, column=0, sticky='ew', pady=(0, 10))
+entrada_origen = tk.Entry(origen_frame, width=90, state="disabled")
+entrada_origen.pack(side=tk.LEFT, fill='x', expand=True)
+tk.Button(origen_frame, text="+", command=seleccionar_carpeta_origen).pack(side=tk.LEFT)
+
+tk.Label(frame_directory, text="Destination Folder:").grid(row=2, column=0, sticky='w')
+destino_frame = tk.Frame(frame_directory)
+destino_frame.grid(row=3, column=0, sticky='ew')
+entrada_destino = tk.Entry(destino_frame, width=90, state="disabled")
+entrada_destino.pack(side=tk.LEFT, fill='x', expand=True)
+entrada_destino.insert(0, ruta_descargas)
+tk.Button(destino_frame, text="+", command=seleccionar_carpeta_destino).pack(side=tk.LEFT)
+
+frame_botones = tk.Frame(tab_directory)
 frame_botones.pack(pady=10)
+tk.Button(frame_botones, text="PDF to Word", command=convertir_pdf_a_word).pack(side=tk.LEFT, padx=10)
+tk.Button(frame_botones, text="Word to PDF", command=convertir_docx_a_pdf).pack(side=tk.LEFT, padx=10)
 
-# Botón para convertir PDF a Word
-tk.Button(frame_botones, text="Convertir PDF a Word", command=convertir_pdf_a_word).pack(side="left", pady=5, padx=10)
 
-# Botón para convertir DOCX a PDF
-tk.Button(frame_botones, text="Convertir Word a PDF", command=convertir_docx_a_pdf).pack(side="left", pady=5, padx=10)
 
-# Iniciar la ventana
+tab_file = tk.Frame(notebook)
+notebook.add(tab_file, text="File")
+
+frame_file = tk.Frame(tab_file)
+frame_file.pack(pady=10, padx=10, fill='x')
+
+tk.Label(frame_file, text="Source Folder:").grid(row=0, column=0, sticky='w')
+origen_frame = tk.Frame(frame_file)
+origen_frame.grid(row=1, column=0, sticky='ew', pady=(0, 10))
+entrada_file = tk.Entry(origen_frame, width=90, state="disabled")
+entrada_file.pack(side=tk.LEFT, fill='x', expand=True)
+tk.Button(origen_frame, text="+", command=seleccionar_archivo).pack(side=tk.LEFT)
+
+
+tk.Label(tab_file, text="Funcionalidad futura...").pack(padx=10, pady=10)
+
+
+# Área de texto para logs
+text_area = tk.Text(ventana, height=10, state="disabled")
+text_area.pack(fill='both', padx=10, pady=10)
+
 ventana.mainloop()
-
-# Comando para el instalador (Archivos y directorio necesarios)
-# pyinstaller  --onefile --windowed --icon=icono.ico --add-data "icono.ico;." main.py
