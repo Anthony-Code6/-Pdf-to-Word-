@@ -38,6 +38,67 @@ def seleccionar_archivo():
         entrada_file.insert(0, file)
         entrada_file.config(state="disabled")
 
+def convertir_pdf_to_word():
+    archivo_origen = entrada_file.get()
+    
+    if not archivo_origen.lower().endswith('.pdf'):
+        messagebox.showerror("Error", "El archivo seleccionado no es un PDF")
+        return
+
+    log_mensaje("Iniciando conversión PDF a Word...")
+
+    archivo_nombre = os.path.basename(archivo_origen)
+    archivo_docx = os.path.join(ruta_descargas, archivo_nombre.replace('.pdf', '.docx'))
+    
+    log_mensaje(f"Convirtiendo: {archivo_nombre}...")
+    try:
+        cv = Converter(archivo_origen)
+        cv.convert(archivo_docx, start=0, end=None)
+        cv.close()
+        log_mensaje(f"✅ Convertido: {archivo_nombre} a DOCX.")
+    except Exception as e:
+        log_mensaje(f"❌ Error al convertir {archivo_nombre}: {e}")
+
+    log_mensaje("Conversión PDF a Word finalizada.")
+
+def convertir_docx_to_pdf():
+    archivo_origen = entrada_file.get()
+    
+    if not archivo_origen.lower().endswith('.docx'):
+        messagebox.showerror("Error", "El archivo seleccionado no es un DOCX")
+        return
+
+    log_mensaje("Iniciando conversión Word a PDF...")
+
+    archivo_nombre = os.path.basename(archivo_origen)
+    archivo_pdf = os.path.abspath(os.path.join(ruta_descargas, archivo_nombre.replace('.docx', '.pdf')))
+    
+    try:
+        if sistema_operativo == 'Windows':
+            word = comtypes.client.CreateObject("Word.Application")
+            word.Visible = False
+
+            log_mensaje(f"Convirtiendo: {archivo_nombre}...")
+            doc = word.Documents.Open(os.path.abspath(archivo_origen))
+            doc.SaveAs(archivo_pdf, FileFormat=17)
+            doc.Close()
+            word.Quit()
+            log_mensaje(f"✅ Convertido: {archivo_nombre} a PDF.")
+
+        elif sistema_operativo == 'Linux':
+            log_mensaje(f"Convirtiendo: {archivo_nombre}...")
+            comando = ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', ruta_descargas, os.path.abspath(archivo_origen)]
+            subprocess.run(comando, check=True)
+            log_mensaje(f"✅ Convertido: {archivo_nombre} a PDF.")
+            
+        else:
+            messagebox.showerror("Error", f"SO no soportado: {sistema_operativo}")
+
+    except Exception as e:
+        log_mensaje(f"❌ Error en la conversión: {e}")
+
+    log_mensaje("Conversión Word a PDF finalizada.")
+
 
 # Noteboog Directory
 
@@ -171,15 +232,19 @@ notebook.add(tab_file, text="File")
 frame_file = tk.Frame(tab_file)
 frame_file.pack(pady=10, padx=10, fill='x')
 
-tk.Label(frame_file, text="Source Folder:").grid(row=0, column=0, sticky='w')
+tk.Label(frame_file, text="Choose the document:").grid(row=0, column=0, sticky='w')
 origen_frame = tk.Frame(frame_file)
 origen_frame.grid(row=1, column=0, sticky='ew', pady=(0, 10))
 entrada_file = tk.Entry(origen_frame, width=90, state="disabled")
 entrada_file.pack(side=tk.LEFT, fill='x', expand=True)
 tk.Button(origen_frame, text="+", command=seleccionar_archivo).pack(side=tk.LEFT)
 
+frame_botones_file = tk.Frame(tab_file)
+frame_botones_file.pack(pady=10)
+tk.Button(frame_botones_file, text="PDF to Word", command=convertir_pdf_to_word).pack(side=tk.LEFT, padx=10)
+tk.Button(frame_botones_file, text="Word to PDF", command=convertir_docx_to_pdf).pack(side=tk.LEFT, padx=10)
 
-tk.Label(tab_file, text="Funcionalidad futura...").pack(padx=10, pady=10)
+tk.Label(tab_file, text='They will be downloaded automatically in the following path: '+ruta_descargas).pack(padx=10, pady=10)
 
 
 # Área de texto para logs
