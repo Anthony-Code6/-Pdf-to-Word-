@@ -140,8 +140,9 @@ def convertir_docx_a_pdf():
 # Configuración de la interfaz gráfica con Tkinter
 ventana = tk.Tk()
 ventana.title("Convertir PDF a Word / Word a PDF")
+ventana.iconbitmap('icono.ico')
 ventana.resizable(False, False)
-ventana.geometry("530x180")
+ventana.geometry("500x150")
 
 # Crear un frame para organizar las entradas y botones
 frame_inputs = tk.Frame(ventana)
@@ -172,3 +173,6 @@ tk.Button(frame_botones, text="Convertir Word a PDF", command=convertir_docx_a_p
 
 # Iniciar la ventana
 ventana.mainloop()
+
+# Comando para el instalador (Archivos y directorio necesarios)
+# pyinstaller  --onefile --windowed --icon=icono.ico --add-data "icono.ico;." main.py
