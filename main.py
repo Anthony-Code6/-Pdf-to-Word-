@@ -2,10 +2,13 @@ import tkinter as tk
 from tkinter import ttk,PhotoImage
 import os
 import platform
+
+from path_download import obtener_ruta_descargas
 from method_directory import seleccionar_carpeta_destino,seleccionar_carpeta_origen,convertir_docx_a_pdf,convertir_pdf_a_word
 from method_file import seleccionar_archivo,convertir_docx_to_pdf,convertir_pdf_to_word
 
-ruta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
+ruta_descargas = obtener_ruta_descargas()
+print(ruta_descargas)
 sistema_operativo = platform.system()
 
 ventana = tk.Tk()
@@ -72,7 +75,7 @@ tk.Button(frame_botones_file, text="PDF to Word", command=lambda: convertir_pdf_
 tk.Button(frame_botones_file, text="Word to PDF", command=lambda: convertir_docx_to_pdf(entrada_file, text_area)).pack(side=tk.LEFT, padx=10)
 
 
-tk.Label(tab_file, text='They will be downloaded automatically in the following path: '+ruta_descargas).pack(padx=10, pady=10)
+tk.Label(tab_file, text='They will be downloaded automatically in the following path: '+str(ruta_descargas)).pack(padx=10, pady=10)
 
 # Área de texto para logs
 text_area = tk.Text(ventana, height=10, state="disabled")

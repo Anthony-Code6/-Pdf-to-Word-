@@ -5,10 +5,11 @@ import os
 import platform
 import subprocess
 
+from path_download import obtener_ruta_descargas
 from print_result import log_mensaje
 
 sistema_operativo = platform.system()
-ruta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
+ruta_descargas = obtener_ruta_descargas()
 
 if sistema_operativo == 'Windows':
     import comtypes.client
