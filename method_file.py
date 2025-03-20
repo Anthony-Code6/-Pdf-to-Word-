@@ -3,13 +3,15 @@ from tkinter import filedialog, messagebox
 from pdf2docx import Converter
 import os
 import platform
-import comtypes.client
 import subprocess
 
 from print_result import log_mensaje
 
 sistema_operativo = platform.system()
 ruta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
+
+if sistema_operativo == 'Windows':
+    import comtypes.client
 
 def seleccionar_archivo(entrada_file):
     file = filedialog.askopenfilename(
