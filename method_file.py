@@ -57,15 +57,20 @@ def convertir_pdf_to_word(entrada_file, text_area):
 def convertir_docx_to_pdf(entrada_file, text_area):
     archivo_origen = entrada_file.get()
     
-    if not archivo_origen.lower().endswith('.docx'):
+    valiate_ext = ('.docx', '.doc', '.docm', '.odt')
+
+    if not archivo_origen.lower().endswith(valiate_ext):
         messagebox.showerror("Error", "The selected file is not a DOCX")
         return
 
     log_mensaje("Starting Word to PDF conversion...", text_area)
 
-    archivo_nombre = os.path.basename(archivo_origen)
-    archivo_pdf = os.path.abspath(os.path.join(ruta_descargas, archivo_nombre.replace('.docx', '.pdf')))
+    # Obtener el nombre base del archivo y la extensión
+    archivo_nombre, extension = os.path.splitext(os.path.basename(archivo_origen))
     
+    # Crear el nombre del archivo PDF con la extensión correcta
+    archivo_pdf = os.path.abspath(os.path.join(ruta_descargas, archivo_nombre + '.pdf'))
+
     try:
         if sistema_operativo == 'Windows':
             word = comtypes.client.CreateObject("Word.Application")

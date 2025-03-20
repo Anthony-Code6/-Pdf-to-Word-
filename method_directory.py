@@ -64,12 +64,14 @@ def convertir_docx_a_pdf(entrada_origen, entrada_destino, text_area):
     log_mensaje("Starting Word to PDF conversion...", text_area)
 
     try:
+        valiate_ext = ('.docx', '.doc', '.docm', '.odt')
+
         if sistema_operativo == 'Windows':
             word = comtypes.client.CreateObject("Word.Application")
             word.Visible = False
 
             for archivo in os.listdir(carpeta_origen):
-                if archivo.lower().endswith('.docx'):
+                if archivo.lower().endswith(valiate_ext):
                     archivo_docx = os.path.abspath(os.path.join(carpeta_origen, archivo))
                     archivo_pdf = os.path.abspath(os.path.join(carpeta_destino, archivo.replace('.docx', '.pdf')))
                     
@@ -83,7 +85,7 @@ def convertir_docx_a_pdf(entrada_origen, entrada_destino, text_area):
 
         elif sistema_operativo == 'Linux':
             for archivo in os.listdir(carpeta_origen):
-                if archivo.lower().endswith('.docx'):
+                if archivo.lower().endswith(valiate_ext):
                     archivo_docx = os.path.abspath(os.path.join(carpeta_origen, archivo))
                     log_mensaje(f"Converting: {archivo}...", text_area)
                     comando = ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', carpeta_destino, archivo_docx]
