@@ -1,16 +1,24 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk,PhotoImage
 import os
+import platform
 from method_directory import seleccionar_carpeta_destino,seleccionar_carpeta_origen,convertir_docx_a_pdf,convertir_pdf_a_word
 from method_file import seleccionar_archivo,convertir_docx_to_pdf,convertir_pdf_to_word
 
 ruta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
+sistema_operativo = platform.system()
 
 ventana = tk.Tk()
 ventana.title("LegionSoft - Converter (PDF/Word & Word/PDF)")
 ventana.geometry("586x380")
 ventana.resizable(False,False)
-ventana.iconbitmap('icono.ico')
+
+
+if sistema_operativo == 'Windows':
+    ventana.iconbitmap('icono.ico')
+elif sistema_operativo == 'Linux':
+    imagen=PhotoImage(file='icon.png')
+    ventana.tk.call('wm','iconphoto',ventana._w,imagen)
 
 notebook = ttk.Notebook(ventana)
 notebook.pack(expand=True, fill='both')
