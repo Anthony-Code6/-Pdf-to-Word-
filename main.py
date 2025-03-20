@@ -10,14 +10,14 @@ sistema_operativo = platform.system()
 
 ventana = tk.Tk()
 ventana.title("LegionSoft - Converter (PDF/Word & Word/PDF)")
-ventana.geometry("586x380")
 ventana.resizable(False,False)
 
-
 if sistema_operativo == 'Windows':
+    ventana.geometry("586x380")
     ventana.iconbitmap('icono.ico')
 elif sistema_operativo == 'Linux':
-    imagen=PhotoImage(file='icon.png')
+    ventana.geometry("789x380")
+    imagen=PhotoImage(file='icono.png')
     ventana.tk.call('wm','iconphoto',ventana._w,imagen)
 
 notebook = ttk.Notebook(ventana)
